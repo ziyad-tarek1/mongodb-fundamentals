@@ -1,200 +1,277 @@
-# MongoDB Fundamentals
-
-## 1. Difference Between MySQL and NoSQL Terminology
-
-| MySQL Terminology  | MongoDB Terminology         |
-|--------------------|-----------------------------|
-| database           | database                    |
-| column             | field                       |
-| row                | document                    |
-| table              | collection                  |
-| index              | index                       |
-| transaction        | transaction                 |
-| primary key        | primary key (default is _id)|
+# 📘 MongoDB Fundamentals – Self-Study Guide
 
 ---
 
-## 2. Database Operations
+## 1. 🆚 Difference Between MySQL and MongoDB (NoSQL) Terminology
 
-The basic operations to perform on a database in MongoDB:
-
-- **Show All Databases**
-  ```bash
-  show dbs
-  ```
-
-- **Show Current Database**
-  ```bash
-  db
-  ```
-
-- **Create / Switch to New Database**
-  ```bash
-  use `<DB_name>`
-  ```
-
-- **Delete Database**
-  ```bash
-  db.dropDatabase()
-  ```
-  **Note**: To drop a database, you need to be in that database.
+| MySQL Terminology | MongoDB Terminology             |
+|-------------------|---------------------------------|
+| database          | database                        |
+| table             | collection                      |
+| row               | document                        |
+| column            | field                           |
+| index             | index                           |
+| transaction       | transaction                     |
+| primary key       | primary key (default is `_id`)  |
 
 ---
 
-## 3. Collections
+## 2. 🗃️ Database Operations
 
-- **Show All Collections of Current Database**
-  ```bash
-  show collections
-  ```
+| Operation               | Command Example     |
+|-------------------------|---------------------|
+| Show all databases      | `show dbs`          |
+| Show current database   | `db`                |
+| Create/Switch database  | `use <DB_name>`     |
+| Delete current database | `db.dropDatabase()` |
 
-- **Create New Collection**
-  ```bash
-  db.createCollection("collection_name")
-  ```
-
-  **Note**: You can insert directly into a non-existing collection, and it will be automatically created.
+> ⚠️ **Note:** You must be in the database you want to drop.
 
 ---
 
-## 4. CRUD Operations
+## 3. 📁 Collections Operations
 
-`CRUD` operations refer to the basic functions of persistent storage. In MongoDB, these operations are as follows:
+| Operation                        | Command Example                                |
+|----------------------------------|------------------------------------------------|
+| Show all collections             | `show collections`                             |
+| Create a new collection          | `db.createCollection("collection_name")`       |
+| Auto-create collection on insert | Insert directly into a non-existent collection |
 
-- **Create**
-  - **Insert**: Insert a single or multiple documents in the collection.
-    ```bash
-    db.collection_name.insert( { } )  // For a single document
-    db.collection_name.insert([ {}, {} ])  // For multiple documents
-    ```
+---
 
-  - **InsertOne**: Insert a single document in the collection.
-    ```bash
-    db.collection_name.insertOne( { } )
-    ```
+## 4. 🔁 CRUD Operations
 
-  - **InsertMany**: Insert multiple documents in the collection.
-    ```bash
-    db.collection_name.insertMany( [ {}, {} ] )
-    ```
+---
 
-### Example & Explanation:
+### 🟢 Create
 
-```bash
-db.collection_name.insertMany( [ 
-    { 
-        _id: 1, 
-        name: 'ziad', 
-        grades: { arabic: 30, english: 40 }, 
-        address: [ "cairo", "fayiom" ] 
-    }, 
-    {} 
-] )
+| Method         | Description                  |
+|----------------|------------------------------|
+| `insert()`     | Insert one or more documents |
+| `insertOne()`  | Insert a single document     |
+| `insertMany()` | Insert multiple documents    |
+
+#### Example:
+```js
+db.students.insertMany([
+  {
+    _id: 1,
+    name: "ziad",
+    grades: { arabic: 30, english: 40 },
+    address: ["cairo", "fayiom"]
+  },
+  {
+    _id: 2,
+    name: "ahmed"
+  }
+])
 ```
 
-- **db.collection_name**: This specifies the collection where the documents will be inserted. Replace `collection_name` with the actual name of your collection.
+> **Note**: Use `[]` for inserting multiple documents.
 
-- **insertMany()**: This method is used to insert multiple documents into the specified collection. It takes an array of documents as an argument.
+📝 **Explanation**:
+- `_id`: Document identifier (auto-generated if not specified)
+- `grades`: A nested (embedded) document
+- `address`: An array of strings
 
-- **Array of Documents**: The array contains two elements:
-  1. **First Document**:
-     - **_id**: This is a unique identifier for the document. In this case, it is set to `1`. If you do not specify an `_id`, MongoDB will automatically generate one.
-     - **name**: This field holds the value `'ziad'`, representing the name of the individual.
-     - **grades**: This is an embedded document (sub-document) that contains two fields:
-       - **arabic**: Set to `30`.
-       - **english**: Set to `40`.
-     - **address**: This is an array that contains two strings: `"cairo"` and `"fayiom"`, representing the locations associated with the individual.
+---
 
-  2. **Second Document**: The second document in the array is an empty object `{}`. This means that a document with no fields will be inserted into the collection. MongoDB will automatically generate an `_id` for this document.
+### 🔍 Read
 
-### Summary:
-This query inserts two documents into the specified collection. The first document contains detailed information about an individual named "ziad," including their grades and addresses, while the second document is empty and will have a generated `_id`.
+---
 
-- **Read**
+#### SQL vs MongoDB Queries
 
-#### To understand it better, let's compare between MySQL and NoSQL:
+| SQL                                              | MongoDB                                                 |
+|--------------------------------------------------|----------------------------------------------------------|
+| `SELECT * FROM people`                           | `db.people.find()`                                      |
+| `SELECT id, user_id, status FROM people`         | `db.people.find({}, { user_id: 1, status: 1 })`         |
+| `SELECT user_id, status FROM people`             | `db.people.find({}, { user_id: 1, status: 1, _id: 0 })` |
+| `SELECT * FROM people WHERE status = "A"`        | `db.people.find({ status: "A" })`                       |
+| `SELECT * FROM people WHERE status != "A"`       | `db.people.find({ status: { $ne: "A" } })`              |
+| `SELECT * FROM people WHERE status = "A" AND age = 50` | `db.people.find({ status: "A", age: 50 })`       |
+| `SELECT * FROM people WHERE status = "A" OR age = 50`  | `db.people.find({ $or: [{ status: "A" }, { age: 50 }] })` |
 
-| SQL Schema Statements                | MongoDB Schema Statements        |
-|--------------------------------------|----------------------------------|
-| SELECT * FROM people                 | db.people.find()                 |
-| SELECT id, user_id, status FROM people | db.people.find({}, {user_id: 1, status: 1}) |
-| SELECT user_id, status FROM people   | db.people.find({}, {user_id: 1, status: 1, _id: 0}) |
-SELECT WHERE - "!=" & FIND()- $NE
+---
 
-SQL Schema Statements
+### 🔧 Comparison Operators
 
-MongoDB Schema Statements
+| SQL Operator | Description               | MongoDB Equivalent |
+|--------------|---------------------------|---------------------|
+| `=`          | Equal to                  | `$eq`               |
+| `!=`         | Not equal to              | `$ne`               |
+| `>`          | Greater than              | `$gt`               |
+| `<`          | Less than                 | `$lt`               |
+| `>=`         | Greater than or equal to  | `$gte`              |
+| `<=`         | Less than or equal to     | `$lte`              |
 
-SELECT * FROM people WHERE status = "A"
+---
 
-db.people.find({status: "A"})
+#### 📌 Examples on Comparison Operators
 
-SELECT user_id, status FROM people WHERE status = "A"
+| SQL                                              | MongoDB                                                   |
+|--------------------------------------------------|------------------------------------------------------------|
+| `SELECT * FROM people WHERE age > 25`            | `db.people.find({ age: { $gt: 25 } })`                     |
+| `SELECT * FROM people WHERE age < 25`            | `db.people.find({ age: { $lt: 25 } })`                     |
+| `SELECT * FROM people WHERE age > 25 AND age <= 50` | `db.people.find({ age: { $gt: 25, $lte: 50 } })`       |
+| `SELECT * FROM people WHERE age < 25 AND age >= 50` | `db.people.find({ age: { $lt: 25, $gte: 50 } })` ❌ (Logically contradictory) |
 
-db.people.find({ status: "A" }, { user_id: 1, status: 1, _id: 0})
+---
 
-SELECT * FROM people WHERE status != "A"
-
-db.people.find({status: {$ne: "A"}})
-### Example & Explanation:
-- Example 1:
-```bash
-db.people.find({}, {user_id: 1, status: 1, _id: 0})
+#### Example 1:
+```js
+db.people.find({}, { user_id: 1, status: 1, _id: 0 })
 ```
 
-#### Explanation:
+🔍 **Explanation**:
+- `{}` = no filter → return all documents
+- Second argument = projection (include/exclude fields)
 
-- **db.people**: This specifies the `people` collection from which we want to retrieve documents. Replace `people` with the actual name of your collection if different.
-
-- **find()**: This method is used to query documents in the collection. It takes two parameters:
-  1. **Query Filter**: The first parameter `{}` is an empty filter, which means we want to retrieve all documents in the collection. If you wanted to filter results based on specific criteria, you would place those criteria inside the curly braces.
-  
-  2. **Projection**: The second parameter `{user_id: 1, status: 1, _id: 0}` specifies which fields to include or exclude in the returned documents:
-     - **user_id: 1**: This means that the `user_id` field will be included in the results.
-     - **status: 1**: This means that the `status` field will also be included in the results.
-     - **_id: 0**: This means that the default `_id` field will be excluded from the results. By default, MongoDB includes the `_id` field in every document, but setting it to `0` will prevent it from being returned.
-
-#### Summary:
-This query retrieves all documents from the `people` collection but only returns the `user_id` and `status` fields for each document, while excluding the `_id` field. This is useful for reducing the amount of data transferred over the network and focusing on only the relevant fields needed for your application.
-
-- Example 2:
-
-```bash
-db.people.find({ status: "A" }, { user_id: 1, status: 1, _id: 0})
+#### Example 2:
+```js
+db.people.find({ status: "A" }, { user_id: 1, status: 1, _id: 0 })
 ```
 
 ---
 
-  - **Find One Document**: Retrieve a single document from the collection.
-    ```bash
-    db.collection_name.findOne( { } )
-    ```
+### 📑 Other Read Commands
 
-  - **Find Multiple Documents**: Retrieve multiple documents from the collection.
-    ```bash
-    db.collection_name.find( { } )
-    ```
+| Purpose                 | Command Example                                  |
+|--------------------------|--------------------------------------------------|
+| Find one document        | `db.collection_name.findOne({ })`               |
+| Find multiple documents  | `db.collection_name.find({ })`                  |
+| Find with condition      | `db.collection_name.find({ "field": "value" })` |
+| Pretty print output      | `db.collection_name.find().pretty()`            |
 
-  - **Find Multiple Documents with JSON**: Retrieve documents that match specific criteria in JSON format.
-    ```bash
-    db.collection_name.find( { "field_name": "value" } )
-    ```
-
-  - **Pretty Print Documents**: Retrieve and format documents for better readability.
-    ```bash
-    db.collection_name.find().pretty()
-    ```
-
-- **Update**
-- **Delete**
-  - **Delete a Collection**
-    ```bash
-    db.collection_name.drop()
-    ```
-
-  - **Delete Database**
-    ```bash
-    db.dropDatabase()
-    ```
-  **Note**: To drop a database, you need to be in that database.
 ---
+
+### 🔃 Sort Operation
+
+MongoDB supports two sorting types:
+- `1` = ascending (ASC)
+- `-1` = descending (DESC)
+
+#### SQL vs MongoDB Sorting Examples
+
+| SQL                               | MongoDB                                                |
+|-----------------------------------|---------------------------------------------------------|
+| `SELECT * FROM people WHERE status = "A"` | `db.people.find({ status: "A" })`              |
+| `ORDER BY user_id ASC`            | `db.people.find({ status: "A" }).sort({ user_id: 1 })` |
+| `ORDER BY user_id DESC`           | `db.people.find({ status: "A" }).sort({ user_id: -1 })`|
+
+---
+
+### 🔢 Count Operation
+
+| SQL                                        | MongoDB                                               |
+|--------------------------------------------|--------------------------------------------------------|
+| `SELECT COUNT(*) FROM people`              | `db.people.count()` or `db.people.find().count()`     |
+| `SELECT COUNT(user_id) FROM people`        | `db.people.count({ user_id: { $exists: true } })`     |
+| `SELECT COUNT(*) FROM people WHERE age > 30` | `db.people.count({ age: { $gt: 30 } })`             |
+
+#### 📍 `$exists` Operator Example:
+```js
+db.people.find({ user_id: { $exists: true } })
+```
+
+> 📝 In MySQL, `*` includes all columns (even nulls); in MongoDB, you can count conditionally or all.
+
+---
+
+### 🔁 Distinct Operation
+
+Used to remove repeated data.
+
+| SQL                                     | MongoDB                          |
+|-----------------------------------------|-----------------------------------|
+| `SELECT DISTINCT (status) FROM people`  | `db.people.distinct("status")`   |
+
+---
+
+### 🔢 Limit & Skip
+
+| SQL                                      | MongoDB                                      |
+|------------------------------------------|----------------------------------------------|
+| `SELECT * FROM people LIMIT 1`           | `db.people.findOne()` or `.find().limit(1)` |
+| `SELECT * FROM people LIMIT 5 SKIP 10`   | `db.people.find().limit(5).skip(10)`        |
+
+---
+
+### 🔍 Flexible Search – `LIKE` Operator Equivalent
+
+| SQL                                          | MongoDB                                                     |
+|----------------------------------------------|-------------------------------------------------------------|
+| `SELECT * FROM people WHERE user_id LIKE "%bc%"` | `db.people.find({ user_id: /bc/ })` or `{ $regex: /bc/ }` |
+| `SELECT * FROM people WHERE user_id LIKE "bc%"`  | `db.people.find({ user_id: /^bc/ })` or `{ $regex: /^bc/ }`|
+
+---
+
+### 🟡 Update
+
+---
+
+#### Update Functions:
+
+- `db.collection.updateOne()` → Updates one document even if more match.
+- `db.collection.updateMany()` → Updates all matching documents.
+- `db.collection.update()` → Updates one by default; add `{ multi: true }` to update many (legacy method).
+
+---
+
+#### SQL vs MongoDB Update Examples
+
+| SQL                                                | MongoDB                                                              |
+|-----------------------------------------------------|-----------------------------------------------------------------------|
+| `UPDATE people SET status = "C" WHERE age > 25`     | `db.people.updateMany({ age: { $gt: 25 } }, { $set: { status: "C" } })` |
+| `UPDATE people SET age = age + 3 WHERE status = "A"`| `db.people.updateMany({ status: "A" }, { $inc: { age: 3 } })`        |
+
+---
+
+| Operation                   | MongoDB Command Example                                                            |
+|-----------------------------|-------------------------------------------------------------------------------------|
+| Update one document         | `db.collection.updateOne({ _id: 1 }, { $set: { name: "ziad" } })`                  |
+| Update multiple documents   | `db.collection.updateMany({ age: { $gt: 25 } }, { $set: { status: "B" } })`        |
+| Replace a document          | `db.collection.replaceOne({ _id: 1 }, { name: "ziad" })`                           |
+
+> 💡 `$set` only updates specified fields. `replaceOne` replaces the entire document.
+
+---
+
+### 🔄 ALTER TABLE Equivalent
+
+#### 🟢 Add a Field
+
+| SQL                                         | MongoDB                                                  |
+|---------------------------------------------|-----------------------------------------------------------|
+| `ALTER TABLE people ADD join_date DATETIME` | `db.people.updateMany({}, { $set: { join_date: new Date() } })` |
+
+> 📝 `new Date()` will insert the current date.
+
+---
+
+#### 🔴 Drop a Field
+
+| SQL                                        | MongoDB                                                |
+|--------------------------------------------|---------------------------------------------------------|
+| `ALTER TABLE people DROP COLUMN join_date` | `db.people.updateMany({}, { $unset: { "join_date": "" } })` |
+
+---
+
+### 🔴 Delete
+
+| Operation           | Command                         |
+|---------------------|----------------------------------|
+| Delete a collection | `db.collection_name.drop()`     |
+| Delete a database   | `db.dropDatabase()`             |
+
+> ⚠️ **Reminder:** You must be in the database you want to delete.
+
+---
+
+### 🗑️ DELETE Statements
+
+| SQL                                    | MongoDB                                      |
+|----------------------------------------|----------------------------------------------|
+| `DELETE FROM people WHERE status = "D"`| `db.people.deleteMany({ status: "D" })`      |
+| `DELETE FROM people`                   | `db.people.deleteMany({})`                   |
+
